@@ -1,0 +1,5 @@
+mimesis
+pandas
+Faker
+faker-schema
+faker-web
