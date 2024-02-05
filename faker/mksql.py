@@ -1,4 +1,6 @@
 
+# Mysql use `` and Oracle use "" for field name.
+
 def mkcreate(data, tablename):
     ls = [(k, v) for k, v in data.items() if v is not None ]
     if len(ls) == 0:
@@ -7,11 +9,11 @@ def mkcreate(data, tablename):
     sentence = 'CREATE TABLE %s ' % tablename + '(\n'
     for i in ls:
         if isinstance(i[1], int):
-            field = '    "' + i[0] + '" INTEGER'
+            field = '    `' + i[0] + '` INTEGER'
         elif isinstance(i[1], float):
-            field = '    "' + i[0] + '" FLOAT'
+            field = '    `' + i[0] + '` FLOAT'
         else:
-            field = '    "' + i[0] + '" VARCHAR(1024)'
+            field = '    `' + i[0] + '` VARCHAR(1024)'
         sentence += field + ', \n'
     sentence = sentence[:-3] + '\n);'
     return sentence
@@ -19,7 +21,7 @@ def mkcreate(data, tablename):
 def mkinsert(data, tablename):
     ls = [(k, v) for k, v in data.items() if v is not None ]
     # print('-->', ls)
-    sentence = 'INSERT INTO %s (' % tablename + ', '.join('"'+i[0]+'"' for i in ls) + \
+    sentence = 'INSERT INTO %s (' % tablename + ', '.join('`'+i[0]+'`' for i in ls) + \
                ')\n VALUES (' +  ','.join(repr(i[1]) for i in ls) + ');'
     return sentence
 
