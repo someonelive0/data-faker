@@ -3,3 +3,6 @@ init:
 
 test:
 	nosetests tests
+
+exe:
+	pyinstaller 。/faker/main.py

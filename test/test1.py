@@ -58,7 +58,11 @@ print(len(datas))
 # import json
 # print(json.dumps(datas))
 
-import mksql
+import sys
+sys.path.append("..")
+from myfaker import mksql
+
+
 if len(datas) > 0:
      sentence = mksql.mkcreate(datas[0], 'table2')
      print(sentence)
