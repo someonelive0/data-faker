@@ -26,7 +26,7 @@ def mkinsert(data, tablename):
     ls = [(k, v) for k, v in data.items() if v is not None ]
     # print('-->', ls)
     sentence = 'INSERT INTO %s (' % tablename + ', '.join('`'+i[0]+'`' for i in ls) + \
-               ')\n VALUES (' +  ','.join(repr(i[1]) for i in ls) + ');'
+               ')\n  VALUES (' +  ','.join(repr(i[1]) for i in ls) + ');'
     return sentence
 
 
