@@ -4,9 +4,13 @@
 def mkcreate(data, tablename):
     ls = [(k, v) for k, v in data.items() if v is not None ]
     if len(ls) == 0:
-        return ''
+        return '-- no fields in data'
     
-    sentence = 'CREATE TABLE %s ' % tablename + '(\n'
+    sentence = '''
+--
+-- create table %s
+--
+CREATE TABLE %s ''' % (tablename, tablename) + '(\n'
     for i in ls:
         if isinstance(i[1], int):
             field = '    `' + i[0] + '` INTEGER'
