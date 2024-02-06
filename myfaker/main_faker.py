@@ -5,8 +5,8 @@ from mimesis.schema import Field, Fieldset, Schema
 from mimesis.enums import Gender
 from faker import Faker
  
-fake = Faker(locale='zh_CN')
 
+fake = Faker(locale='zh_CN')
 field = Field(locale=Locale.ZH)
 fieldset = Fieldset(Locale.ZH, seed=0xff)
 
