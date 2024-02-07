@@ -3,22 +3,33 @@
 
 import version, tablename_faker, field_faker, mksql
 from mimesis.schema import Field, Fieldset, Schema
-import random, time, sys
+import random, time, datetime, sys, logging
 
 
-table_count = 200
+table_count = 2000
 item_min = 100
-item_max = 30000
+item_max = 3000
+
+logger = logging.getLogger('data-faker')
+logger.setLevel(logging.INFO)
+formator = logging.Formatter(fmt="%(asctime)s [ %(filename)s ]  %(lineno)d行 | [ %(levelname)s ] | [%(message)s]", datefmt="%Y/%m/%d/%X")
+sh = logging.StreamHandler()
+fh = logging.FileHandler("data-faker.log", encoding="utf-8")
+sh.setFormatter(formator)
+fh.setFormatter(formator)
+logger.addHandler(sh)
+logger.addHandler(fh)
+
 
 # 产生表名和字段动态函数的字典，即{ tablename: fields_lambda }
 def make_tables():
-    print('random make tablenames in one time')
+    logger.info('random make %d tablenames in one time' % table_count)
     tablenames = tablename_faker.mktablenames(table_count)
-    # print(len(tablenames), tablenames)
+    # logger.debug(len(tablenames), tablenames)
 
     tables = {}
     for tablename in tablenames:
-        # print('tablename: ', tablename)
+        # logger.debug('tablename: ', tablename)
         fields_lambda = field_faker.mkfields_lambda()
         tables[tablename] = fields_lambda
 
@@ -38,10 +49,10 @@ def make_sql_create(tables, filename=None):
     for tablename in tables.keys():
         fields_lambda = tables[tablename]
         item = fields_lambda()
-        # print(len(item), item)
+        # logger.debug(len(item), item)
 
         sentence = mksql.mkcreate(item, tablename)
-        # print(sentence)
+        # logger.debug(sentence)
         fp.write(sentence + '\n')
         count += 1
 
@@ -61,7 +72,7 @@ def make_sql_insert(tables, filename=None):
         fields_lambda = tables[tablename]
         schema = Schema(schema=fields_lambda, iterations=random.randint(item_min, item_max))
         items = schema.create()
-        # print(len(items))
+        # logger.debug(len(items))
 
         sentences = '\n--\n-- datas of %s\n' % tablename
         sentences += '-- item number %d\n--\n' % len(items)
@@ -80,18 +91,19 @@ def make_sql_insert(tables, filename=None):
 
 if __name__ == '__main__':
     start_time = time.time()
-    print(time.strftime('BEGIN %Y-%m-%d %H:%M:%S',time.localtime(start_time)))
+    logger.info(time.strftime('BEGIN %Y-%m-%d %H:%M:%S', time.localtime(start_time)))
 
     # 产生表的定义
     tables = make_tables()
-    print('make tables %d' % len(tables))
+    logger.info('make tables %d' % len(tables))
 
     count = make_sql_create(tables, 'fake_tables.sql')
-    print('create table of sql sentences: ', count)
+    logger.info('create table of sql sentences:  %d' %  count)
 
     count = make_sql_insert(tables, 'fake_tables_data.sql')
-    print('insert of sql sentences: ', count)
+    logger.info('insert of sql sentences: %d' % count)
 
     end_time = time.time()
-    print('Running time: %s Seconds'%(end_time - start_time))
-    print(time.strftime('END %Y-%m-%d %H:%M:%S',time.localtime(end_time)))
+    logger.info('running time: %s Seconds' % (datetime.datetime.fromtimestamp(time.mktime(time.localtime(end_time)))
+                                               - datetime.datetime.fromtimestamp(time.mktime(time.localtime(start_time)))))
+    logger.info(time.strftime('END %Y-%m-%d %H:%M:%S',time.localtime(end_time)))
