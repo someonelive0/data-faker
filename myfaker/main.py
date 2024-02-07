@@ -2,29 +2,52 @@
 # 产生模拟表和模拟字段，并产生模拟数据，进而生产SQL
 
 import version, tablename_faker, field_faker, mksql
-from mimesis.schema import Field, Fieldset, Schema
-import random, time, datetime, sys, logging
+from mimesis.schema import Schema
+import random, time, sys, logging, argparse
+from datetime import datetime
 
 
-table_count = 2000
-item_min = 100
-item_max = 3000
 
 logger = logging.getLogger('data-faker')
-logger.setLevel(logging.INFO)
-formator = logging.Formatter(fmt="%(asctime)s [ %(filename)s ]  %(lineno)d行 | [ %(levelname)s ] | [%(message)s]", datefmt="%Y/%m/%d/%X")
-sh = logging.StreamHandler()
-fh = logging.FileHandler("data-faker.log", encoding="utf-8")
-sh.setFormatter(formator)
-fh.setFormatter(formator)
-logger.addHandler(sh)
-logger.addHandler(fh)
+ARG_TABLE_NUMBER = 2
+ARG_ITEM_MIN = 100
+ARG_ITEM_MAX = 3000
 
+
+def init():
+    logger.setLevel(logging.INFO)
+    formator = logging.Formatter(fmt="%(asctime)s [ %(filename)s ]  %(lineno)d行 | [ %(levelname)s ] | [%(message)s]", datefmt="%Y/%m/%d/%X")
+    sh = logging.StreamHandler()
+    fh = logging.FileHandler("data-faker.log", encoding="utf-8")
+    sh.setFormatter(formator)
+    fh.setFormatter(formator)
+    logger.addHandler(sh)
+    logger.addHandler(fh)
+
+    global ARG_TABLE_NUMBER, ARG_ITEM_MIN, ARG_ITEM_MAX
+    parser = argparse.ArgumentParser(description='data-faker argparse')
+    parser.add_argument(
+        '-n', '--number', type=int,
+        help='args of table number'
+    )
+    parser.add_argument(
+        '--min', type=int, default=100,
+        help='min lines in a table'
+    )
+    parser.add_argument(
+        '--max', type=int, default=1000,
+        help='max lines in a table'
+    )
+    args = parser.parse_args()
+    logger.info('args %s' % args)
+    if args.number:
+        ARG_TABLE_NUMBER = args.number
+    ARG_ITEM_MIN, ARG_ITEM_MAX = args.min, args.max
 
 # 产生表名和字段动态函数的字典，即{ tablename: fields_lambda }
 def make_tables():
-    logger.info('random make %d tablenames in one time' % table_count)
-    tablenames = tablename_faker.mktablenames(table_count)
+    logger.info('make %d tablenames in one time' % ARG_TABLE_NUMBER)
+    tablenames = tablename_faker.mktablenames(ARG_TABLE_NUMBER)
     # logger.debug(len(tablenames), tablenames)
 
     tables = {}
@@ -60,6 +83,7 @@ def make_sql_create(tables, filename=None):
 
 # 根据表的字典即{ tablename: fields_lambda }，输出模拟数据的INSERT的SQL的条数
 def make_sql_insert(tables, filename=None):
+    logger.info('make tables records min=%d max=%d' % (ARG_ITEM_MIN, ARG_ITEM_MAX))
     sentences = '-- created by %s version %s\n' % (version.APP_NAME, version.VERSION)
     sentences += '-- created on ' + time.strftime("%Y-%m-%dT%H:%M:%S %Z", time.localtime()) + '\n'
     fp = sys.stdout
@@ -70,7 +94,7 @@ def make_sql_insert(tables, filename=None):
     count = 0
     for tablename in tables.keys():
         fields_lambda = tables[tablename]
-        schema = Schema(schema=fields_lambda, iterations=random.randint(item_min, item_max))
+        schema = Schema(schema=fields_lambda, iterations=random.randint(ARG_ITEM_MIN, ARG_ITEM_MAX))
         items = schema.create()
         # logger.debug(len(items))
 
@@ -90,6 +114,8 @@ def make_sql_insert(tables, filename=None):
 
 
 if __name__ == '__main__':
+    init()
+
     start_time = time.time()
     logger.info(time.strftime('BEGIN %Y-%m-%d %H:%M:%S', time.localtime(start_time)))
 
@@ -104,6 +130,6 @@ if __name__ == '__main__':
     logger.info('insert of sql sentences: %d' % count)
 
     end_time = time.time()
-    logger.info('running time: %s Seconds' % (datetime.datetime.fromtimestamp(time.mktime(time.localtime(end_time)))
-                                               - datetime.datetime.fromtimestamp(time.mktime(time.localtime(start_time)))))
+    logger.info('running time: %s Seconds' % (datetime.fromtimestamp(time.mktime(time.localtime(end_time)))
+                                               - datetime.fromtimestamp(time.mktime(time.localtime(start_time)))))
     logger.info(time.strftime('END %Y-%m-%d %H:%M:%S',time.localtime(end_time)))
