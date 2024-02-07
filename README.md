@@ -11,8 +11,8 @@ Database run the fake sql
 Such as mysql:
 
 docker cp fake_tables.sql mysql:/tmp/fake_tables.sql
-docker exec -ti mysql /usr/bin/mysql -uroot --password=<PASSWORD> -fr -B fakedb  -e 'source /tmp/fake_tables.sql'
-docker exec -ti mysql /usr/bin/mysql -uroot --password=<PASSWORD> -fr -B fakedb  -e 'show tables'
+docker exec -ti mysql /usr/bin/mysql -uroot --password=<PASSWORD> -fr -B --default-character-set=utf8 fakedb  -e 'source /tmp/fake_tables.sql'
+docker exec -ti mysql /usr/bin/mysql -uroot --password=<PASSWORD> -fr -B --default-character-set=utf8 fakedb  -e 'show tables'
 
 
 

@@ -1,11 +1,14 @@
 from mimesis import Field, Locale
+from mimesis.keys import maybe
+import random
 
 
 # 使用用户名来产生一个单词，以后应该考虑使用一个名称字典来随机产生
 # mktablename() 产生一个单词
 def mktablename():
     field = Field(Locale.EN)
-    tablename = field("username", mask="U_d", key=str.lower, drange=(100, 10000))
+    # tablename = field("username", mask="U_d", key=str.lower, drange=(100, 10000))
+    tablename = field("text.word", key=maybe("N/A", probability=0.0)) + '_' + str(random.randint(100,10000))
     return tablename
 
 # mktablenames(nums) 一次产生nums个单词，同时需要判断是否重复，故使用一个临时字典判断是否重复

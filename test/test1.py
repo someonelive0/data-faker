@@ -61,7 +61,9 @@ print(len(datas))
 # import json
 # print(json.dumps(datas))
 
+# 注意运行的PWD目录
 import sys
+sys.path.append(".")
 sys.path.append("..")
 from myfaker import mksql
 

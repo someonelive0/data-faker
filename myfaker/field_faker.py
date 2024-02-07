@@ -13,7 +13,7 @@ field = Field(locale=Locale.ZH)
 fields_template = {
     "pk": 'field("increment")',
     "uid": 'field("uuid")',
-    "name": 'field("person.name")',
+    "name": 'field("person.surname")+field("person.name")',
     "username": 'field("person.username")',
     "memo": 'field("text.word")',
     "text": 'fake.sentence(nb_words=6, variable_nb_words=True, ext_word_list=None)',
