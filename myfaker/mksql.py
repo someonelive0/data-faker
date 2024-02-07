@@ -17,7 +17,7 @@ CREATE TABLE %s ''' % (tablename, tablename) + '(\n'
         elif isinstance(i[1], float):
             field = '    `' + i[0] + '` FLOAT'
         else:
-            field = '    `' + i[0] + '` VARCHAR(1024)'
+            field = '    `' + i[0] + '` TEXT'
         sentence += field + ', \n'
     sentence = sentence[:-3] + '\n);'
     return sentence
