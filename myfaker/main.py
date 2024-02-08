@@ -88,6 +88,11 @@ def make_sql_insert(tables, filename=None):
     logger.info('make tables records min=%d max=%d' % (ARG_ITEM_MIN, ARG_ITEM_MAX))
     sentences = '-- created by %s version %s\n' % (version.APP_NAME, version.VERSION)
     sentences += '-- created on ' + time.strftime("%Y-%m-%dT%H:%M:%S %Z", time.localtime()) + '\n'
+
+    # 由于 & 字符被sqlplus当成变量前缀，需要关闭，在sqlplus中先执行语句： set define off
+    if ARG_DB == 'oracle':
+        sentences += 'set define off;\n'
+
     fp = sys.stdout
     if filename is not None:
         fp = open(filename, 'w', encoding='utf-8')
@@ -102,7 +107,7 @@ def make_sql_insert(tables, filename=None):
 
         sentences = '\n--\n-- datas of table %s within %s\n' % (tablename, ARG_DB)
         sentences += '-- item number %d\n--\n' % len(items)
-        if ARG_DB == 'mysql' or ARG_DB == 'postgresql':
+        if ARG_DB == 'mysql' or ARG_DB == 'postgresql':  # mysql and postgresql support extend insert
             for items_tmp in batch(items, ARG_INSERT_BENTCH):
                 sentence = mksql.mkinsert_ext(items_tmp, tablename)
                 sentences += sentence + '\n'

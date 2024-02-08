@@ -19,5 +19,25 @@ docker exec -ti mysql /usr/bin/mysql -uroot --password=<PASSWORD> -fr -B --defau
 
 
 Such as postgresql:
+
 docker cp fake_tables.sql postgres:/tmp
 docker exec -it postgres psql -U postgres -d fakedb -f /tmp/fake_tables.sql
+
+
+Such as oracle:
+
+docker exec -ti oracle sqlplus testuser/<PASSWORD>@localhost:1521/XEPDB1 
+docker exec -ti oracle sqlplus sys/<PASSWORD>@localhost:1521/XEPDB1 as sysdba  @/tmp/fake_tables.sql
+docker exec -ti oracle sqlplus testuser/<PASSWORD>@localhost:1521/XEPDB1  @/tmp/fake_tables.sql
+docker exec -ti oracle sqlplus testuser/<PASSWORD>@localhost:1521/XEPDB1  @/tmp/fake_tables_data.sql
+
+说明
+docker exec -it <container name> sqlplus <username>/<password>@<service name> @<container path>
+  这里的 `<username>` 是数据库用户名，`<password>` 是数据库密码，`<service name>` 是数据库服务名，例如 `ORCLCDB.localdomain`；`<container path>` 是 SQL 文件在容器内的路径，例如 `/tmp/myscript.sql`
+
+由于 & 字符被sqlplus当成变量前缀，需要关闭，在sqlplus中先执行语句： set define off
+例如：
+docker exec -ti oracle sqlplus testuser/<PASSWORD>@localhost:1521/XEPDB1 
+SQL > set define off;
+SQL > @/tmp/fake_tables_data.sql
+

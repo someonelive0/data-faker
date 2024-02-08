@@ -4,15 +4,19 @@
 
 DB_TPYE = ''      # such as mysql, postgresql, oracle
 DB_QUOTE = ''     # mysql use `` as quote, postgresql and oracle use "" as quote
+DB_TEXT_TYPE = 'TEXT'
 
 # 创建建表语句
 def mkcreate(data, tablename, dbtype='mysql'):
-    global DB_TPYE, DB_QUOTE
+    global DB_TPYE, DB_QUOTE, DB_TEXT_TYPE
     DB_TPYE = dbtype
     if DB_TPYE == 'mysql':
         DB_QUOTE = '`'
-    elif DB_TPYE == 'postgresql' or DB_TPYE == 'oracle':
+    elif DB_TPYE == 'postgresql':
         DB_QUOTE = '"'
+    elif DB_TPYE == 'oracle':
+        DB_QUOTE = '"'
+        DB_TEXT_TYPE = 'VARCHAR(2048)'
 
     ls = [(k, v) for k, v in data.items() if v is not None ]
     if len(ls) == 0:
@@ -29,18 +33,18 @@ CREATE TABLE %s ''' % (tablename, DB_TPYE, tablename) + '(\n'
         elif isinstance(i[1], float):
             field = '    ' + DB_QUOTE + i[0] + DB_QUOTE + ' FLOAT'
         else:
-            field = '    ' + DB_QUOTE + i[0] + DB_QUOTE + ' TEXT'
+            field = '    ' + DB_QUOTE + i[0] + DB_QUOTE + ' ' + DB_TEXT_TYPE
         sentence += field + ', \n'
     sentence = sentence[:-3] + '\n);'
     
     return sentence
 
-# 创建INSERT一条数据语句
+# 创建INSERT一条数据语句，每个字段加回车是为了避免oracle的单行超过300个字符的错误
 def mkinsert(data, tablename):
     ls = [(k, v) for k, v in data.items() if v is not None ]
     # print('-->', ls)
-    sentence = 'INSERT INTO %s (' % tablename + ', '.join(DB_QUOTE+i[0]+DB_QUOTE for i in ls) + \
-               ')\n  VALUES (' +  ','.join(repr(i[1]) for i in ls) + ');'
+    sentence = 'INSERT INTO %s (' % tablename + ',\n'.join(DB_QUOTE+i[0]+DB_QUOTE for i in ls) + \
+               ')\n  VALUES (' +  ',\n'.join(repr(i[1]) for i in ls) + ');'
     return sentence
 
 # 创建扩展INSERT语句，即插入多条数据，输入参数datas是list集合
