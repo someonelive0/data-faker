@@ -26,7 +26,7 @@ def init():
     logger.addHandler(sh)
     logger.addHandler(fh)
 
-    global ARG_TABLE_NUMBER, ARG_ITEM_MIN, ARG_ITEM_MAX, ARG_DB
+    global ARG_TABLE_NUMBER, ARG_ITEM_MIN, ARG_ITEM_MAX, ARG_DB, ARG_INSERT_BENTCH
     parser = argparse.ArgumentParser(description='data-faker argparse')
     parser.add_argument('-n', '--number', type=int, help='args of table number')
     parser.add_argument('--min', type=int, default=100, help='min lines in a table')
@@ -38,6 +38,8 @@ def init():
     if args.number:
         ARG_TABLE_NUMBER = args.number
     ARG_ITEM_MIN, ARG_ITEM_MAX, ARG_DB, ARG_INSERT_BENTCH = args.min, args.max, args.db, args.batch
+    if ARG_ITEM_MAX < ARG_ITEM_MIN:
+        ARG_ITEM_MAX = ARG_ITEM_MIN
 
 # 产生表名和字段动态函数的字典，即{ tablename: fields_lambda }
 def make_tables():

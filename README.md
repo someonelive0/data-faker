@@ -21,11 +21,15 @@ docker exec -ti mysql /usr/bin/mysql -uroot --password=<PASSWORD> -fr -B --defau
 Such as postgresql:
 
 docker cp fake_tables.sql postgres:/tmp
+docker cp fake_tables_data.sql postgres:/tmp
 docker exec -it postgres psql -U postgres -d fakedb -f /tmp/fake_tables.sql
+docker exec -it postgres psql -U postgres -d fakedb -f /tmp/fake_tables_data.sql
 
 
 Such as oracle:
 
+docker cp fake_tables.sql oracle:/tmp
+docker cp fake_tables_data.sql oracle:/tmp
 docker exec -ti oracle sqlplus testuser/<PASSWORD>@localhost:1521/XEPDB1 
 docker exec -ti oracle sqlplus sys/<PASSWORD>@localhost:1521/XEPDB1 as sysdba  @/tmp/fake_tables.sql
 docker exec -ti oracle sqlplus testuser/<PASSWORD>@localhost:1521/XEPDB1  @/tmp/fake_tables.sql
