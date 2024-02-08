@@ -10,14 +10,14 @@ from datetime import datetime
 
 logger = logging.getLogger('data-faker')
 ARG_TABLE_NUMBER = 2
-ARG_ITEM_MIN = 100
-ARG_ITEM_MAX = 1000
+ARG_ITEM_MIN = 20
+ARG_ITEM_MAX = 100
 ARG_DB = 'mysql'
 ARG_INSERT_BENTCH = 40
 
 
 def init():
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.DEBUG)
     formator = logging.Formatter(fmt="%(asctime)s [ %(filename)s ]  %(lineno)d行 | [ %(levelname)s ] | [%(message)s]", datefmt="%Y/%m/%d/%X")
     sh = logging.StreamHandler()
     fh = logging.FileHandler("data-faker.log", encoding="utf-8")
@@ -29,8 +29,8 @@ def init():
     global ARG_TABLE_NUMBER, ARG_ITEM_MIN, ARG_ITEM_MAX, ARG_DB, ARG_INSERT_BENTCH
     parser = argparse.ArgumentParser(description='data-faker argparse')
     parser.add_argument('-n', '--number', type=int, help='args of table number')
-    parser.add_argument('--min', type=int, default=100, help='min lines in a table')
-    parser.add_argument('--max', type=int, default=1000, help='max lines in a table')
+    parser.add_argument('--min', type=int, default=20, help='min lines in a table')
+    parser.add_argument('--max', type=int, default=100, help='max lines in a table')
     parser.add_argument('--db', type=str, default='mysql', help='target database, such as mysql, postgresql or oracle')
     parser.add_argument('--batch', type=int, default=40, help='extend insert number in one batch')
     args = parser.parse_args()
@@ -75,6 +75,8 @@ def make_sql_create(tables, filename=None):
         # logger.debug(sentence)
         fp.write(sentence + '\n')
         count += 1
+        if count % 1000 == 0:
+            logger.debug('make_sql_create count %d' % count)
 
     return count
 
@@ -100,12 +102,15 @@ def make_sql_insert(tables, filename=None):
         fp = open(filename, 'w', encoding='utf-8')
     fp.write(sentences)
 
-    count = 0
+    count, table_count = 0, 0
     for tablename in tables.keys():
         fields_lambda = tables[tablename]
         schema = Schema(schema=fields_lambda, iterations=random.randint(ARG_ITEM_MIN, ARG_ITEM_MAX))
         items = schema.create()
         # logger.debug(len(items))
+        table_count += 1
+        if table_count % 1000 == 0:
+            logger.debug('make_sql_insert table_count %d, items %d' % (table_count, count))
 
         sentences = '\n--\n-- datas of table %s within %s\n' % (tablename, ARG_DB)
         sentences += '-- item number %d\n--\n' % len(items)
