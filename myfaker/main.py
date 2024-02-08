@@ -69,7 +69,7 @@ def make_sql_create(tables, filename=None):
         item = fields_lambda()
         # logger.debug(len(item), item)
 
-        sentence = mksql.mkcreate(item, tablename)
+        sentence = mksql.mkcreate(item, tablename, ARG_DB)
         # logger.debug(sentence)
         fp.write(sentence + '\n')
         count += 1
@@ -100,9 +100,9 @@ def make_sql_insert(tables, filename=None):
         items = schema.create()
         # logger.debug(len(items))
 
-        sentences = '\n--\n-- datas of %s\n' % tablename
+        sentences = '\n--\n-- datas of table %s within %s\n' % (tablename, ARG_DB)
         sentences += '-- item number %d\n--\n' % len(items)
-        if ARG_DB == 'mysql':
+        if ARG_DB == 'mysql' or ARG_DB == 'postgresql':
             for items_tmp in batch(items, ARG_INSERT_BENTCH):
                 sentence = mksql.mkinsert_ext(items_tmp, tablename)
                 sentences += sentence + '\n'

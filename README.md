@@ -18,3 +18,6 @@ docker exec -ti mysql /usr/bin/mysql -uroot --password=<PASSWORD> -fr -B --defau
 docker exec -ti mysql /usr/bin/mysql -uroot --password=<PASSWORD> -fr -B --default-character-set=utf8 fakedb  -e 'show tables'
 
 
+Such as postgresql:
+docker cp fake_tables.sql postgres:/tmp
+docker exec -it postgres psql -U postgres -d fakedb -f /tmp/fake_tables.sql

@@ -43,7 +43,7 @@ fields_template = {
     "last_name": 'field("person.last_name")',
     "nationality": 'field("person.nationality")',
     "occupation": 'field("person.occupation")',
-    "password": 'field("person.password")',
+    # "password": 'field("person.password")', # this cause unexpected char in SQL
     "phone_number": 'field("person.phone_number")',
     "political_views": 'field("person.political_views")',
     "sex": 'field("person.sex")',
@@ -140,7 +140,7 @@ fields_template = {
     "file_size": 'field("file.size")',
 
     "cpu": 'field("hardware.cpu")',
-    "cpu_codename": 'field("hardware.cpu_codename")',
+    "cpu_codename": 'field("hardware.cpu_codename").replace("\'", "")',
     "cpu_frequency": 'field("hardware.cpu_frequency")',
     "generation": 'field("hardware.generation")',
     "graphics": 'field("hardware.graphics")',
@@ -198,7 +198,7 @@ fields_template = {
     "credit_card_expiration_date": 'field("payment.credit_card_expiration_date")',
     "credit_card_network": 'field("payment.credit_card_network")',
     "credit_card_number": 'field("payment.credit_card_number")',
-    "credit_card_owner": 'json.dumps(field("payment.credit_card_owner"))',
+    # "credit_card_owner": 'json.dumps(field("payment.credit_card_owner"))', # owner fullname has \' will cause sql failed
     "cvv": 'field("payment.cvv")',
     "ethereum_address": 'field("payment.ethereum_address")',
     "paypal": 'field("payment.paypal")',

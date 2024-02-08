@@ -2,24 +2,34 @@
 # -*- coding: utf-8 -*-
 # Mysql use `` and Oracle use "" for field name.
 
+DB_TPYE = ''      # such as mysql, postgresql, oracle
+DB_QUOTE = ''     # mysql use `` as quote, postgresql and oracle use "" as quote
+
 # 创建建表语句
-def mkcreate(data, tablename):
+def mkcreate(data, tablename, dbtype='mysql'):
+    global DB_TPYE, DB_QUOTE
+    DB_TPYE = dbtype
+    if DB_TPYE == 'mysql':
+        DB_QUOTE = '`'
+    elif DB_TPYE == 'postgresql' or DB_TPYE == 'oracle':
+        DB_QUOTE = '"'
+
     ls = [(k, v) for k, v in data.items() if v is not None ]
     if len(ls) == 0:
         return '-- no fields in data'
-    
+
     sentence = '''
 --
--- create table %s
+-- create table %s within %s
 --
-CREATE TABLE %s ''' % (tablename, tablename) + '(\n'
+CREATE TABLE %s ''' % (tablename, DB_TPYE, tablename) + '(\n'
     for i in ls:
         if isinstance(i[1], int):
-            field = '    `' + i[0] + '` INTEGER'
+            field = '    ' + DB_QUOTE + i[0] + DB_QUOTE + ' INTEGER'
         elif isinstance(i[1], float):
-            field = '    `' + i[0] + '` FLOAT'
+            field = '    ' + DB_QUOTE + i[0] + DB_QUOTE + ' FLOAT'
         else:
-            field = '    `' + i[0] + '` TEXT'
+            field = '    ' + DB_QUOTE + i[0] + DB_QUOTE + ' TEXT'
         sentence += field + ', \n'
     sentence = sentence[:-3] + '\n);'
     
@@ -29,7 +39,7 @@ CREATE TABLE %s ''' % (tablename, tablename) + '(\n'
 def mkinsert(data, tablename):
     ls = [(k, v) for k, v in data.items() if v is not None ]
     # print('-->', ls)
-    sentence = 'INSERT INTO %s (' % tablename + ', '.join('`'+i[0]+'`' for i in ls) + \
+    sentence = 'INSERT INTO %s (' % tablename + ', '.join(DB_QUOTE+i[0]+DB_QUOTE for i in ls) + \
                ')\n  VALUES (' +  ','.join(repr(i[1]) for i in ls) + ');'
     return sentence
 
@@ -40,7 +50,7 @@ def mkinsert_ext(datas, tablename):
     
     ls = [(k, v) for k, v in datas[0].items() if v is not None ]
     # print('-->', ls)
-    sentence = '\nINSERT INTO %s (' % tablename + ', '.join('`'+i[0]+'`' for i in ls) + ') VALUES '
+    sentence = '\nINSERT INTO %s (' % tablename + ', '.join(DB_QUOTE+i[0]+DB_QUOTE for i in ls) + ') VALUES '
 
     for data in datas:
         ls = [(k, v) for k, v in data.items() if v is not None ]
@@ -52,12 +62,12 @@ if __name__ == '__main__':
     print('test make sql sentence from dict')
     data = {'pk': 3, 'flo': 12.22, 'userid': '9b2c8812-db39-48d6-a547-a688ebe80899', 'name': '职能', 'version': '76.93.71', 'timestamp': '2024-03-21T19:34:01Z',  'email': 'budget2021@mimesis.name', 'creator': '梦阳  须', 'apiKeys': '7a5f45d02610810f'}
 
-    sentence = mkcreate(data, 'table1')
-    print('make CREATE from dict: ', sentence)
+    sentence = mkcreate(data, 'table1', 'postgresql')
+    print('-- make CREATE from dict: \n', sentence)
 
     sentence = mkinsert(data, 'table1')
-    print('make INSERT from dict: ', sentence)
+    print('-- make INSERT from dict: \n', sentence)
 
     datas = [data, data]
     sentence = mkinsert_ext(datas, 'table1')
-    print('make Extent INSERT from dict: ', sentence)
+    print('-- make Extent INSERT from dict: \n', sentence)
