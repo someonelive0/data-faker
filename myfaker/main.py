@@ -11,7 +11,9 @@ from datetime import datetime
 logger = logging.getLogger('data-faker')
 ARG_TABLE_NUMBER = 2
 ARG_ITEM_MIN = 100
-ARG_ITEM_MAX = 3000
+ARG_ITEM_MAX = 1000
+ARG_DB = 'mysql'
+ARG_INSERT_BENTCH = 40
 
 
 def init():
@@ -24,25 +26,18 @@ def init():
     logger.addHandler(sh)
     logger.addHandler(fh)
 
-    global ARG_TABLE_NUMBER, ARG_ITEM_MIN, ARG_ITEM_MAX
+    global ARG_TABLE_NUMBER, ARG_ITEM_MIN, ARG_ITEM_MAX, ARG_DB
     parser = argparse.ArgumentParser(description='data-faker argparse')
-    parser.add_argument(
-        '-n', '--number', type=int,
-        help='args of table number'
-    )
-    parser.add_argument(
-        '--min', type=int, default=100,
-        help='min lines in a table'
-    )
-    parser.add_argument(
-        '--max', type=int, default=1000,
-        help='max lines in a table'
-    )
+    parser.add_argument('-n', '--number', type=int, help='args of table number')
+    parser.add_argument('--min', type=int, default=100, help='min lines in a table')
+    parser.add_argument('--max', type=int, default=1000, help='max lines in a table')
+    parser.add_argument('--db', type=str, default='mysql', help='target database, such as mysql, postgresql or oracle')
+    parser.add_argument('--batch', type=int, default=40, help='extend insert number in one batch')
     args = parser.parse_args()
     logger.info('args %s' % args)
     if args.number:
         ARG_TABLE_NUMBER = args.number
-    ARG_ITEM_MIN, ARG_ITEM_MAX = args.min, args.max
+    ARG_ITEM_MIN, ARG_ITEM_MAX, ARG_DB, ARG_INSERT_BENTCH = args.min, args.max, args.db, args.batch
 
 # 产生表名和字段动态函数的字典，即{ tablename: fields_lambda }
 def make_tables():
@@ -81,6 +76,13 @@ def make_sql_create(tables, filename=None):
 
     return count
 
+# Python对列表按数量分割
+def batch(iterable, n=1):
+    l = len(iterable)
+    for ndx in range(0, l, n):
+        yield iterable[ndx:min(ndx + n, l)]
+
+
 # 根据表的字典即{ tablename: fields_lambda }，输出模拟数据的INSERT的SQL的条数
 def make_sql_insert(tables, filename=None):
     logger.info('make tables records min=%d max=%d' % (ARG_ITEM_MIN, ARG_ITEM_MAX))
@@ -100,10 +102,16 @@ def make_sql_insert(tables, filename=None):
 
         sentences = '\n--\n-- datas of %s\n' % tablename
         sentences += '-- item number %d\n--\n' % len(items)
-        for item in items:
-            sentence = mksql.mkinsert(item, tablename)
-            sentences += sentence + '\n'
-            count += 1
+        if ARG_DB == 'mysql':
+            for items_tmp in batch(items, ARG_INSERT_BENTCH):
+                sentence = mksql.mkinsert_ext(items_tmp, tablename)
+                sentences += sentence + '\n'
+                count += len(items_tmp)
+        else:
+            for item in items:
+                sentence = mksql.mkinsert(item, tablename)
+                sentences += sentence + '\n'
+                count += 1
 
         fp.write(sentences)
 
