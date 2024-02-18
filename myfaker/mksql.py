@@ -24,9 +24,9 @@ def mkcreate(data, tablename, dbtype='mysql'):
 
     sentence = '''
 --
--- create table %s within %s
+-- create table %s with %d fields for %s
 --
-CREATE TABLE %s ''' % (tablename, DB_TPYE, tablename) + '(\n'
+CREATE TABLE %s ''' % (tablename, len(data.items()), DB_TPYE, tablename) + '(\n'
     for i in ls:
         if isinstance(i[1], int):
             field = '    ' + DB_QUOTE + i[0] + DB_QUOTE + ' INTEGER'

@@ -28,11 +28,11 @@ def init():
 
     global ARG_TABLE_NUMBER, ARG_ITEM_MIN, ARG_ITEM_MAX, ARG_DB, ARG_INSERT_BENTCH
     parser = argparse.ArgumentParser(description='data-faker argparse')
-    parser.add_argument('-n', '--number', type=int, help='args of table number')
-    parser.add_argument('--min', type=int, default=20, help='min lines in a table')
-    parser.add_argument('--max', type=int, default=100, help='max lines in a table')
-    parser.add_argument('--db', type=str, default='mysql', help='target database, such as mysql, postgresql or oracle')
-    parser.add_argument('--batch', type=int, default=40, help='extend insert number in one batch')
+    parser.add_argument('-n', '--number', type=int, help='args of table number, default 2')
+    parser.add_argument('--min', type=int, default=20, help='min lines in a table, default 20')
+    parser.add_argument('--max', type=int, default=100, help='max lines in a table, default 100')
+    parser.add_argument('--db', type=str, default='mysql', help='target database, such as mysql, postgresql or oracle, default mysql')
+    parser.add_argument('--batch', type=int, default=40, help='extend insert number in one batch, default 40 in one insert')
     args = parser.parse_args()
     logger.info('args %s' % args)
     if args.number:
