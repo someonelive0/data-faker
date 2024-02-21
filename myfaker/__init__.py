@@ -1,3 +1,3 @@
 __all__ = ['mksql'] 
 
-print(__name__)
+print('import ', __name__)

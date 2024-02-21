@@ -3,3 +3,5 @@ pandas
 Faker
 faker-schema
 faker-web
+fastapi
+uvicorn

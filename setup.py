@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-# Learn more: https://github.com/kennethreitz/setup.py
-
 from setuptools import setup, find_packages
 
 
@@ -14,11 +12,11 @@ with open('LICENSE') as f:
 setup(
     name='data-faker',
     version='0.1.0',
-    description='Data faker for IDSS',
+    description='Data faker for test',
     long_description=readme,
-    author='Kenneth Reitz',
-    author_email='me@kennethreitz.com',
-    url='https://github.com/kennethreitz/samplemod',
+    author='Someonelive',
+    author_email='someonelive0',
+    url='https://github.com/someonelive0/data-scanner',
     license=license,
     packages=find_packages(exclude=('tests', 'docs'))
 )
