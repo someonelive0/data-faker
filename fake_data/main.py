@@ -8,7 +8,7 @@ from datetime import datetime
 
 
 
-logger = logging.getLogger('data-faker')
+logger = logging.getLogger('fake_data')
 ARG_TABLE_NUMBER = 2
 ARG_ITEM_MIN = 20
 ARG_ITEM_MAX = 100
@@ -20,14 +20,14 @@ def init():
     logger.setLevel(logging.DEBUG)
     formator = logging.Formatter(fmt="%(asctime)s [ %(filename)s ]  %(lineno)d行 | [ %(levelname)s ] | [%(message)s]", datefmt="%Y/%m/%d/%X")
     sh = logging.StreamHandler()
-    fh = logging.FileHandler("data-faker.log", encoding="utf-8")
+    fh = logging.FileHandler("fake_data.log", encoding="utf-8")
     sh.setFormatter(formator)
     fh.setFormatter(formator)
     logger.addHandler(sh)
     logger.addHandler(fh)
 
     global ARG_TABLE_NUMBER, ARG_ITEM_MIN, ARG_ITEM_MAX, ARG_DB, ARG_INSERT_BENTCH
-    parser = argparse.ArgumentParser(description='data-faker argparse')
+    parser = argparse.ArgumentParser(description='fake_data argparse')
     parser.add_argument('-n', '--number', type=int, help='args of table number, default 2')
     parser.add_argument('--min', type=int, default=20, help='min lines in a table, default 20')
     parser.add_argument('--max', type=int, default=100, help='max lines in a table, default 100')

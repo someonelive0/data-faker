@@ -14,7 +14,7 @@ sys.path.append("..")
 from fake_data import version, tablename_faker, field_faker, mksql
 
 
-logger = logging.getLogger('faker-api')
+logger = logging.getLogger('faker_api')
 ARG_TABLE_NUMBER = 2
 ARG_ITEM_MIN = 20
 ARG_ITEM_MAX = 100
@@ -26,7 +26,7 @@ def init():
     logger.setLevel(logging.DEBUG)
     formator = logging.Formatter(fmt="%(asctime)s [ %(filename)s ]  %(lineno)d行 | [ %(levelname)s ] | [%(message)s]", datefmt="%Y/%m/%d/%X")
     sh = logging.StreamHandler()
-    fh = logging.FileHandler("faker-api.log", encoding="utf-8")
+    fh = logging.FileHandler("faker_api.log", encoding="utf-8")
     sh.setFormatter(formator)
     fh.setFormatter(formator)
     logger.addHandler(sh)
