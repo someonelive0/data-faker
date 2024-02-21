@@ -11,7 +11,7 @@ from fastapi import FastAPI
 import sys
 sys.path.append(".")
 sys.path.append("..")
-from myfaker import version, tablename_faker, field_faker, mksql
+from fake_data import version, tablename_faker, field_faker, mksql
 
 
 logger = logging.getLogger('faker-api')

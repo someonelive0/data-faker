@@ -5,5 +5,5 @@ test:
 	nosetests tests
 
 exe:
-	pyinstaller ./myfaker/main.py
-	pyinstaller ./fakerapi/main.py
+	pyinstaller ./fake_data/main.py
+	pyinstaller ./fake_api/main.py

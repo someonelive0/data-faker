@@ -2,9 +2,9 @@
 
 # Usage
 
-python3 ./myfaker/main.py -h
-python3 ./myfaker/main.py -n 100
-python3 ./myfaker/main.py -n 100 --min 100 --min 100 --max 1000 --db [mysql|oracle]
+python3 ./fake_data/main.py -h
+python3 ./fake_data/main.py -n 100
+python3 ./fake_data/main.py -n 100 --min 100 --min 100 --max 1000 --db [mysql|oracle]
 
 参数说明：
 usage: main.py [-h] [-n NUMBER] [--min MIN] [--max MAX] [--db DB] [--batch BATCH]

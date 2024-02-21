@@ -253,7 +253,7 @@ print(len(datas))
 import sys
 sys.path.append(".")
 sys.path.append("..")
-from myfaker import mksql
+from fake_data import mksql
 
 
 if len(datas) > 0:

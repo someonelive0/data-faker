@@ -9,13 +9,13 @@ require python-3.10 or higher
 ## 模拟数据库数据，产生SQL建表语句和插入语句
 
 ```
-python .\myfaker\main.py
+python .\fake_data\main.py
 ```
 
 ## 模拟Rest API，返回模拟数据
 
 ```
-python .\fakerapi\main.py
+python .\fake_api\main.py
 ```
 
 然后访问 http://127.0.0.1:8000/xxx 即可，xxx表示任意字符。
