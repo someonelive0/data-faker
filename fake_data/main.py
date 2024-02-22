@@ -3,9 +3,8 @@
 
 import version, tablename_faker, field_faker, mksql
 from mimesis.schema import Schema
-import random, time, sys, logging, argparse
+import random, time, sys, logging, argparse, pathlib
 from datetime import datetime
-
 
 
 logger = logging.getLogger('fake_data')
@@ -143,11 +142,12 @@ if __name__ == '__main__':
     tables = make_tables()
     logger.info('make tables %d' % len(tables))
 
-    count = make_sql_create(tables, 'fake_tables.sql')
-    logger.info('create table of sql sentences:  %d' %  count)
+    pathlib.Path('sql').mkdir(parents=True, exist_ok=True) 
+    count = make_sql_create(tables, 'sql/fake_tables.sql')
+    logger.info('create table of sql sentences:  %d in file sql/fake_tables.sql' %  count)
 
-    count = make_sql_insert(tables, 'fake_tables_data.sql')
-    logger.info('insert of sql sentences: %d' % count)
+    count = make_sql_insert(tables, 'sql/fake_tables_data.sql')
+    logger.info('insert of sql sentences: %d in file sql/fake_tables_data.sql' % count)
 
     end_time = time.time()
     logger.info('running time: %s Seconds' % (datetime.fromtimestamp(time.mktime(time.localtime(end_time)))
