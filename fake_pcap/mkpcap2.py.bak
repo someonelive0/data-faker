@@ -1,0 +1,230 @@
+# -*- coding: utf-8 -*-
+# 产生模拟pcap文件
+# From https://github.com/cslev/pcap_generator/blob/master/pcap_generator_from_csv.py
+#
+
+import sys, time, re, binascii
+
+# ----- ===== Configurable parameteres ==== ----
+# DO NOT TOUCH OTHER VARIABLES
+# default necessary values if there is nothing provided
+# default_src_mac = "00:00:00:00:00:01"
+# default_dst_mac = "00:00:00:00:00:02"
+# default_src_ip = "10.0.0.1"
+# default_dst_ip = "192.168.88.8"
+# default_src_port = 1234
+# default_dst_port = 808
+# default_vlan = None
+# default_ttl = 64
+# default_ether_type = 'ipv4'
+# default_src_ipv6 = '2603:c022:1:52dd:dead:beef:abba:edda'
+# default_dst_ipv6 = '2405:0800:9030:1bd2:dead:beef:dead:beef'
+# default_protocol = 'udp'
+#DEFINE HERE THE DIFFERENT PACKETS SIZE YOU WANT - ALL HEADER INFORMATION WILL BE THE SAME FOR ALL PACKET SIZES
+#This needs to be list object: if you want to use one packet size must be a list with two elements, where the latter is
+#empty, i.e., packet_size=(64,)
+# packet_sizes = (64,) #,  # PCAP file will be generated for these
+                # 128,  # packet sizes - we always generate all packets with these packet sizes
+                # 256,
+                # 512,
+                # 1024,
+                # 1280,
+                # 1500)
+
+# ------ =================================== -----
+
+### CONSTANT LETTERS USED TO BE REPLACED ###
+# to ease adding new ones without messing up already used ones
+# |--- pcap packet header
+# T1 T1 T1 T1 - time in seconds 
+# T2 T2 T2 T2 - time in microseconds 
+# XX XX XX XX - Frame size 
+# YY YY YY YY - Frame size 
+#
+# |--- eth header
+# TY PE - Ethernet type #TODO
+#
+# |--- ip_header
+# XX XX - Length 
+# TT - ttl
+# PP - protocol (udp/tcp ~ 11/6) #TODO
+# YY YY - checksum
+# SS SS SS SS - soure IP (ipv4)
+# DD DD DD DD - dest IP (ipv4)
+#
+# |--- ipv6_header
+# XX XX - length
+# SS SS SS ... - source IP
+# DD DD DD ... - dest IP
+#
+# |--- udp_header
+# ZZ ZZ - source port
+# XX XX - dest port
+# YY YY - length
+#
+# |-- gtp_header
+# FF - type
+# LL LL - length
+# TE ID TE ID - TEID
+#
+# |--- tcp_syn_header
+# ZZ ZZ - source port
+# XX XX - destination port
+# NN NN NN NN - SEQ number
+# CC CC - checksum
+# TT TT TT TT - timestamp
+
+# Global header for pcap 2.4
+pcap_global_header = ('D4 C3 B2 A1'
+                      '02 00'  # File format major revision (i.e. pcap <2>.4)
+                      '04 00'  # File format minor revision (i.e. pcap 2.<4>)
+                      '00 00 00 00'
+                      '00 00 00 00'
+                      'FF FF 00 00'
+                      '01 00 00 00')
+
+# pcap packet header that must preface every packet
+pcap_packet_header = ('T1 T1 T1 T1'  # time in seconds (little endian)
+                      'T2 T2 T2 T2'  # time in microseconds (little endian)
+                      'XX XX XX XX'  # Frame Size (little endian)
+                      'YY YY YY YY')  # Frame Size (little endian)
+
+eth_header = ('00 E0 4C 00 00 01'  # Dest Mac
+              '00 04 0B 00 00 02'  # Src Mac
+              'TY PE')  # Protocol (0x0800 = IP)
+
+ip_header = ('45'  # IP version and header length (multiples of 4 bytes) (4+4 bits)
+             '00'  #DSCP + ECN (6 + 2 bits)
+             'XX XX'  # Length (16 bits) - will be calculated and replaced later
+             '00 00' # Identification (16 bits)
+             '40 00' # Flags + frag_Offset (3 + 13 bits)
+             'TT PP'  # TTL + Protocol (11-UDP, 6-TCP) (8 + 8 bits)
+             'YY YY'  # Checksum - will be calculated and replaced later (16 bits)
+             'SS SS SS SS'  # Source IP (Default: 10.1.0.1) (32 bits)
+             'DD DD DD DD')  # Dest IP (Default: 10.0.0.1) (32 bits)
+
+ipv6_header = ( '6' # IP version
+                '00' # Traffic class, DSCP, ECN
+                '3F B7 7' # Flow label <- randomly set to this 3fb77, it does not have any specific meaning now
+                'XX XX' # Length (16 bits) in bytes including extension headers if there is any + PDU- will be calucalted and replaced later
+                'PP' # Next header (protocol set to TCP here as only TCP SYNs are supported for now) 
+                'FF' # Hop limit - set to max 255
+                'SS SS SS SS SS SS SS SS SS SS SS SS SS SS SS SS' # Source IP (128 bits) - will be replaced later
+                'DD DD DD DD DD DD DD DD DD DD DD DD DD DD DD DD' # Dest IP (128 bits) - will be replaced later
+)
+
+tcp_syn_header= ('ZZ ZZ' # Source port - will be replaced later
+                 'XX XX' # Destination port - will be replaced later
+                 'NN NN NN NN' # SEQ number - will be replaced later
+                 '00 00 00 00' # ACK number - set to 0 as being SYN packet
+                 'L' # header length - calculated later (in 32-bit words) 
+                 '00' # reserved (3bit), nonce (1bit), flags (CWR,ECE,URG,ACK) (4bit)
+                 '2' # flags (4bit) (ACK,PSH,SYN,FIN -> hex(0b0010) -> 2)  - it's set to 2 to indicate SYN packet
+                 '20 00' # window - set randomly
+                 'CC CC' # checksum - will be replaced later
+                 '00 00' # urgent pointer - 00 00 by default
+                 '02 04 05 78' #TCP option - Max Segment Size - set to 1400 bytes
+            ### IF YOU WANT MORE TCP OPTIONS HERE, DO IT BELOW ####
+                '04 02' # TCP option - SACK permitted
+                '08 0A TT TT TT TT 00 00 00 00' # TCP option timestamp - 08 timestamp, 0a (length - 10), TT... timestamp, 00... timestamp echo reply=0 by default
+                '01' #TCP option - No-Operation
+                '03 03 07' #TCP window scale (03), length (03), set multiplier to 7 (multiply by 128)' 
+)
+
+udp_header = ('ZZ ZZ'  # Source port - will be replaced later
+              'XX XX'  # Destination Port - will be replaced later
+              'YY YY'  # Length - will be calculated and replaced later
+              'CC CC') # UDP checksum - it is optional in IPv4 but MANDATORY in IPv6 - so we calculate it to be sure
+
+gtp_header = ('30'              # Version(3), Proto type(1) and other zero fields
+              'FF'              # Type: T-PDU
+              'LL LL'           # Length - will be calculated later
+              'TE ID TE ID')    # TEID - will be added later
+
+ETHER_TYPES_ALLOWED = ['ipv4', 'ipv6']
+PROTOS_ALLOWED = ['udp', 'tcp_syn'] #currently, we do not support more protos than pure UDP or TCP_SYN
+
+
+def _reverseEndian(hexstring):
+    #create a list of 2-characters of the input
+    big_endian = re.findall('..', hexstring)
+    little_endian=""
+    for i in reversed(big_endian):
+        little_endian+=i
+
+    return little_endian
+
+
+def createTimestamp(**kwargs):
+    # this is a timestamp in seconds.microseconds, e.g., 1570435931.7557144
+    _time = kwargs.get('time',time.time())
+    #check for float type
+    if isinstance(_time,float):
+        _time="%.8f" % _time # str(time) is not working well below python3 as floats become reduced to two decimals only
+    #split it to seconds and microseconds
+    _time=_time.split('.')
+    # time is a list now
+    sec  = _time[0]
+    usec = _time[1]
+    # convert the to hex
+    sec = ("%08x" % int(sec))   # now, we have sec in hex (big endian)
+    usec = ("%08x" % int(usec)) # now, we have usec in hex (big endian)
+
+    sec  = _reverseEndian(sec)
+    usec = _reverseEndian(usec)
+    return (sec,usec)
+
+def getByteLength(str1):
+    return int(len(''.join(str1.split())) / 2)
+
+
+
+first_byte_to_write = True
+
+def writeByteStringToFile(bytestring, filename):
+    bytelist = bytestring.split()
+    bytes = binascii.a2b_hex(''.join(bytelist))
+    bitout = open(filename, 'ab')
+    bitout.write(bytes)
+
+
+def backspace(n):
+    # print((b'\x08' * n).decode(), end='') # use \x08 char to go back
+    sys.stdout.write('\r' * n)  # use '\r' to go back
+
+def rawcount(filename):
+    '''
+    Ultrafast way to count number of lines in a file. Comes pretty handy when parsing the csv file and we want to show its progress.
+    comes from here: https://stackoverflow.com/questions/845058/how-to-get-line-count-of-a-large-file-cheaply-in-python
+    Works with python3! python2 might not be sufficient for the raw interface
+    '''
+    f = open(filename, 'rb')
+    lines = 0
+    buf_size = 1024 * 1024
+    read_f = f.raw.read
+
+    buf = read_f(buf_size)
+    while buf:
+        lines += buf.count(b'\n')
+        buf = read_f(buf_size)
+
+    return lines
+
+
+def calculateRemainingPercentage(message, current, n):
+    percent = str(message + ": %d%%" % (int((current / float(n)) * 100)))
+    if(current < n):
+        #coloring - does not seem to work, though
+        percent.replace(": ", str(": {}".format(orange)) )
+        
+        print(percent, end="\r")
+    else:
+        #coloring - does not seem to work, though
+        percent.replace(": ", str(": {}{}".format(bold,green)) ) 
+        
+        print(percent, end="")
+        print("\t{}{}[DONE]{}".format(bold,green,none))
+
+    # sys.stdout.write(percent)
+
+#    backspace(len(percent))  # back for n chars
